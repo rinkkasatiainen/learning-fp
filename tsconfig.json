@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "outDir": "./public",
+    "target": "es5",
+    "module": "commonjs",
+    "removeComments": true,
+    "sourceMap": true,
+//    "jsx": "react",
+//    "jsxFactory": "h",
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "strictNullChecks": true,
+
+    "esModuleInterop": true,
+    "lib": [
+      "dom",
+      "es6"
+    ],
+    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "rootDir": ".",
+    "baseUrl": "."
+  },
+  "include": [
+    "./*/src/**/*",
+    "./*/test/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+    //  , "**/*.spec.ts"
+  ]
+}
