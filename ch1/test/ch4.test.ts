@@ -1,38 +1,41 @@
 import { expect } from 'chai';
 
+interface Maybe<T extends boolean> {
+	isValid: T
+}
+
+interface Some<T> extends Maybe<true> {
+	value: T
+}
+
+type None = Maybe<false>
+
+type Optional<T> = Some<T> | None
+
+const none: () => None = () => ({ isValid: false })
+const some: <A>(value: A) => Some<A> = value => ({ isValid: true, value })
+
+const optionalOf: <A>(x?: A) => Optional<A> = value => {
+	if (value === null || value === undefined) {
+		return none()
+	}
+	return some(value)
+}
+const id: <A>(value: A) => Optional<A> =
+	value => {
+		return optionalOf(value)
+	}
+
+type MapOptionalFunc<A, B> = (value: A) => Optional<B>;
+const mapOptional: <A, B>(optional: Optional<A>) => (y: MapOptionalFunc<A, B>) => Optional<B> =
+	<A>(optional: Optional<A>) => <B>(func: (value: A) => Optional<B>) => {
+		if (optional.isValid) {
+			return func(optional.value)
+		}
+		return optionalOf<B>(undefined)
+	}
 describe('Kleisli Categories, https://bartoszmilewski.com/2014/12/23/kleisli-categories/', () => {
-	describe('Kleisli category for a partial function', () => {
-
-
-		interface Optional<T> {
-			value?: T
-			isValid: boolean
-		}
-
-		type GetOptional<A> = (x: Optional<A>) => A | never
-		type MapOptional<A, B> = (x: Optional<A>) => (y: (value: A) => Optional<B>) => Optional<B>
-
-		const optionalOf: <A>(x?: A) => Optional<A> = value => {
-			if (value === null || value === undefined) {
-				return { value: undefined, isValid: false }
-			}
-			return { value, isValid: true }
-		}
-
-		// const getOptional: GetOptional<any> = <T>(optional: Optional<T>) => {
-		// 	if (optional.isValid) {
-		// 		return optional.value
-		// 	}
-		// 	throw new Error('Cannot get from Nothing')
-		// }
-
-		const mapOptional: <A,B>(optional: Optional<A>) => (y: (value: A) => Optional<B>) => Optional<B> =
-			optional => func => {
-				if( optional.isValid ){
-					return func(optional.value)
-				}
-				return optionalOf<B>(null)
-			}
+	describe('1 - Kleisli category for a partial function', () => {
 
 		it('has composition', () => {
 			const optional: Optional<string> = optionalOf('something')
@@ -44,8 +47,50 @@ describe('Kleisli Categories, https://bartoszmilewski.com/2014/12/23/kleisli-cat
 		})
 
 		it('has identity', () => {
+			const optional: Optional<string> = optionalOf('something')
+			const toUpper: (x: string) => Optional<string> = (input: string) => optionalOf<string>(input.toUpperCase())
 
+			expect(optional).to.eql(mapOptional(optional)(id))
+			expect(mapOptional(optional)(toUpper)).to.eql(mapOptional<string, string>(mapOptional<string, string>(optional)(id))(toUpper))
 		})
+	})
+
+	const toNaturalNumber: (number: number) => Optional<number> = number => {
+		if (number === 0) {
+			return none()
+		}
+		return some(number)
+	}
+	const reciprocal: MapOptionalFunc<number, number> = num => some(1 / num)
+
+	const safeReciprocal: (x: Optional<number>) => Optional<number> = (optional) => mapOptional<number, number>(optional)(reciprocal)
+	describe('2 - safeReciprocal', () => {
+		it('is not calculated for 0', () => {
+			expect(toNaturalNumber(0)).to.eql(none())
+			expect(safeReciprocal(toNaturalNumber(0))).to.eql(none())
+		})
+
+		it('can calculate', () => {
+			expect(safeReciprocal(toNaturalNumber(10))).to.eql(some(1 / 10))
+			expect(safeReciprocal(toNaturalNumber(5))).to.eql(some(1 / 5))
+		})
+	})
+
+	type NaturalNumber = Optional<number>
+	const safeRoot: (x: NaturalNumber) => NaturalNumber = optional => mapOptional<number, number>(optional)(x => some(Math.sqrt(x)))
+
+	describe('3 - safeRoot - reciprocal', () => {
+		it('can calcuate root for NaturalNumber', () => {
+			expect(safeRoot(toNaturalNumber(25))).to.eql(some(5))
+			expect(safeRoot(toNaturalNumber(0))).to.eql(none())
+		})
+
+		const safeRootReciprocal: (x: NaturalNumber) => NaturalNumber = optional => safeRoot(safeReciprocal(optional))
+		it('can calculate safe root reciprocal', () => {
+			expect(safeReciprocal(toNaturalNumber(25))).to.eql( some (0.04))
+			expect(safeRootReciprocal(toNaturalNumber(25))).to.eql( some (0.2))
+		})
+
 	});
 
-});
+})
