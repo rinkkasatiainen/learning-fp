@@ -68,8 +68,5 @@ describe('Categories Great and Small, https://bartoszmilewski.com/2014/12/05/cat
 			expect(add(mod3Of(2), 0)).to.eql(mod3Of(2))
 			expect(add(mod3Of(3), 0)).to.eql(mod3Of(3))
 		})
-
-
-
 	})
 })
