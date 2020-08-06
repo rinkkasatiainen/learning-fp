@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import JSON = Mocha.reporters.JSON;
 
 interface NodeType<T> {
 	_type: T
@@ -100,7 +99,20 @@ describe('a Tree', () => {
 		})(tree)
 	}
 
+
 	describe('can relabel', () => {
+
+		function stringifyRelabel<T>(tuple: Tree<Tuple<T>>): string {
+			return matcher<string, Tuple<T>>({
+				leaf: (l: Leaf<Tuple<T>>) => {
+					return `${ l.value.index }:${l.value.value}`
+				},
+				node: (n: Node<Tuple<T>>) => {
+					return stringifyRelabel(n.l) + '-' + stringifyRelabel(n.r)
+				}
+			})(tuple)
+		}
+
 		it('can relabel leaf', () => {
 			const tree = createLeaf('w')
 			expect(relabel(tree)(1).value).to.eql({ _type: 'leaf', value: { value: 'w', index: 1 } })
@@ -121,7 +133,7 @@ describe('a Tree', () => {
 		it('can relabel a tree falling to rigth', () => {
 			const l1 = createLeaf('a')
 			const l2 = createLeaf('b')
-			const l3 = createLeaf('b')
+			const l3 = createLeaf('c')
 			const tree = createNode(l1, createNode(l2, l3))
 
 			expect(relabel(tree)(1).value).to.eql({
@@ -130,15 +142,15 @@ describe('a Tree', () => {
 				r: {
 					_type: 'node',
 					l: { _type: 'leaf', value: { value: 'b', index: 2 } },
-					r: { _type: 'leaf', value: { value: 'b', index: 3 } }
+					r: { _type: 'leaf', value: { value: 'c', index: 3 } }
 				}
 			})
 		})
 
-		it('can relabel a tree falling to rigth', () => {
+		it('can relabel a  well balanced tree', () => {
 			const l1 = createLeaf('a')
 			const l2 = createLeaf('b')
-			const l3 = createLeaf('b')
+			const l3 = createLeaf('c')
 			const tree = createNode(createNode(l1, l1), createNode(l2, l3))
 
 			expect(relabel(tree)(1).value).to.eql({
@@ -151,9 +163,20 @@ describe('a Tree', () => {
 				r: {
 					_type: 'node',
 					l: { _type: 'leaf', value: { value: 'b', index: 3 } },
-					r: { _type: 'leaf', value: { value: 'b', index: 4 } }
+					r: { _type: 'leaf', value: { value: 'c', index: 4 } }
 				}
 			})
+
+			expect(stringifyRelabel(relabel<string>(tree)(1).value)).to.eql('1:a-2:a-3:b-4:c')
+		})
+
+		it('can relabel a ', () => {
+			const l1 = createLeaf('a')
+			const l2 = createLeaf('b')
+			const l3 = createLeaf('c')
+			const tree = createNode(createNode(l1, createNode(l2, l1)), createNode(l2, l3))
+
+			expect(stringifyRelabel(relabel<string>(tree)(1).value)).to.eql('1:a-2:b-3:a-4:b-5:c')
 		})
 	})
 });
