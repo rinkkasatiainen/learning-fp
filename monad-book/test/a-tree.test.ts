@@ -27,19 +27,14 @@ type Pattern<T, U> = {
 }
 
 const matcher: <T, U>(pattern: Pattern<T, U>) => (tree: Tree<U>) => T =
-	pattern => tree => {
-		console.log(pattern, tree)
+	pattern => tree => pattern[tree._type](tree as any)
 
-		return pattern[tree._type](tree as any);
-	}
-
-function stringifyTree<T>(tree: Tree<T>): string {
-	console.log(tree)
+const stringifyTree = <T>(tree: Tree<T>): string => {
 	return matcher<string, T>({
 		leaf: l => l.value.toString(),
 		node: n => stringifyTree(n.l) + ', ' + stringifyTree(n.r)
 	})(tree)
-}
+};
 
 const createLeaf = <T>(value: T): Leaf<T> => ({ _type: 'leaf', value: value });
 const createNode = <T>(l: Tree<T>, r: Tree<T>): Node<T> => ({ _type: 'node', l, r });
@@ -87,4 +82,78 @@ describe('a Tree', () => {
 		})
 	})
 
+	interface Tuple<T> {
+		value: T
+		index: number
+	}
+
+	type Relabel<T> = (x: number) => Tuple<Tree<Tuple<T>>>
+
+	function relabel<T>(tree: Tree<T>): Relabel<T> {
+		return i => matcher<Tuple<Tree<Tuple<T>>>, T>({
+			leaf: l => ({ value: { _type: 'leaf', value: { value: l.value, index: i } }, index: i }),
+			node: n => {
+				const { value: l, index: i1 } = relabel(n.l)(i)
+				const { value: r, index: i2 } = relabel(n.r)(i1 + 1)
+				return { value: { _type: 'node', l, r }, index: i2 };
+			}
+		})(tree)
+	}
+
+	describe('can relabel', () => {
+		it('can relabel leaf', () => {
+			const tree = createLeaf('w')
+			expect(relabel(tree)(1).value).to.eql({ _type: 'leaf', value: { value: 'w', index: 1 } })
+		})
+
+		it('can relabel small tree', () => {
+			const l1 = createLeaf('a')
+			const l2 = createLeaf('b')
+			const tree = createNode(l1, l2)
+
+			expect(relabel(tree)(1).value).to.eql({
+				_type: 'node',
+				l: { _type: 'leaf', value: { value: 'a', index: 1 } },
+				r: { _type: 'leaf', value: { value: 'b', index: 2 } }
+			})
+		})
+
+		it('can relabel a tree falling to rigth', () => {
+			const l1 = createLeaf('a')
+			const l2 = createLeaf('b')
+			const l3 = createLeaf('b')
+			const tree = createNode(l1, createNode(l2, l3))
+
+			expect(relabel(tree)(1).value).to.eql({
+				_type: 'node',
+				l: { _type: 'leaf', value: { value: 'a', index: 1 } },
+				r: {
+					_type: 'node',
+					l: { _type: 'leaf', value: { value: 'b', index: 2 } },
+					r: { _type: 'leaf', value: { value: 'b', index: 3 } }
+				}
+			})
+		})
+
+		it('can relabel a tree falling to rigth', () => {
+			const l1 = createLeaf('a')
+			const l2 = createLeaf('b')
+			const l3 = createLeaf('b')
+			const tree = createNode(createNode(l1, l1), createNode(l2, l3))
+
+			expect(relabel(tree)(1).value).to.eql({
+				_type: 'node',
+				l: {
+					_type: 'node',
+					l: { _type: 'leaf', value: { value: 'a', index: 1 } },
+					r: { _type: 'leaf', value: { value: 'a', index: 2 } }
+				},
+				r: {
+					_type: 'node',
+					l: { _type: 'leaf', value: { value: 'b', index: 3 } },
+					r: { _type: 'leaf', value: { value: 'b', index: 4 } }
+				}
+			})
+		})
+	})
 });
