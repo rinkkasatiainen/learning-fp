@@ -1,4 +1,4 @@
-import { Maybe, none, some } from './maybe';
+import { Maybe, none, just } from './maybe';
 
 interface LR<A extends boolean, B extends boolean> {
 	isLeft: A
@@ -19,7 +19,7 @@ export const left: <A>(x: A) => Left<A> = value => ({ isLeft: true, isRight: fal
 export const right: <A>(x: A) => Right<A> = value => ({ isRight: true, isLeft: false, value })
 
 export const toMaybe: <A>(onRight: (x: A) => Maybe<A>) => (either: Either<any, A>) => Maybe<A> =
-	<A>(onRight: (x: A) => Maybe<A>) => either<any, A, Maybe<A>>(none)(some)
+	<A>(onRight: (x: A) => Maybe<A>) => either<any, A, Maybe<A>>(none)(just)
 
 export const either: <A, B, C>(onLeft: (a: A) => C) => (onRight: (b: B) => C) => (either: Either<A, B>) => C =
 	onLeft => onRight => e => {

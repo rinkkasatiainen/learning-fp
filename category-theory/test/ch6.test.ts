@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { maybe, none, Some, some, toEither } from '../src/maybe';
+import { maybe, none, Some, just, toEither } from '../src/maybe';
 import { either, Either, left, right, toMaybe } from '../src/either';
 import { checkExhaustive } from '../src/check-exhaustiv';
 
@@ -11,7 +11,7 @@ describe('Simple Algebraic Data Types - https://bartoszmilewski.com/2015/01/13/s
 		}
 
 		const anything: Any = { any: 'thing' };
-		const maybeA = some(anything)
+		const maybeA = just(anything)
 		const nothing = none()
 		const rightA = right(anything)
 		const leftA = left(undefined)
@@ -19,10 +19,10 @@ describe('Simple Algebraic Data Types - https://bartoszmilewski.com/2015/01/13/s
 		expect(maybe<Any, Either<never, Any>>(right)(maybeA)).to.eql(rightA)
 		expect(either<never, Any, Some<Any>>(() => {
 			throw Error('Never!')
-		})(some)(rightA)).to.eql(maybeA)
+		})(just)(rightA)).to.eql(maybeA)
 
 		expect(toEither(() => left(undefined))(right)(nothing)).to.eql(leftA)
-		expect(toMaybe(some)(leftA)).to.eql(nothing)
+		expect(toMaybe(just)(leftA)).to.eql(nothing)
 	});
 
 	describe('2 - Shape', () => {
