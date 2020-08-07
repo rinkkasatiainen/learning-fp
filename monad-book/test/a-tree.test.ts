@@ -1,42 +1,9 @@
 import { expect } from 'chai';
-
-interface NodeType<T> {
-	_type: T
-}
-
-interface Leaf<T> extends NodeType<'leaf'> {
-	value: T
-}
-
-interface Node<T> extends NodeType<'node'> {
-	l: Tree<T>
-	r: Tree<T>
-}
-
-type Tree<T> = Leaf<T> | Node<T>
-
-type TreeType<T> = Tree<T>['_type']
-type TreeMap<U, T> = {
-	[K in TreeType<T>]: U extends { _type: K } ? U : never
-}
-type TreeTypeMap<T> = TreeMap<Tree<T>, T>
-
-type Pattern<T, U> = {
-	[K in keyof TreeTypeMap<U>]: (shape: TreeTypeMap<any>[K]) => T
-}
-
-const matcher: <T, U>(pattern: Pattern<T, U>) => (tree: Tree<U>) => T =
-	pattern => tree => pattern[tree._type](tree as any)
-
-const stringifyTree = <T>(tree: Tree<T>): string => {
-	return matcher<string, T>({
-		leaf: l => l.value.toString(),
-		node: n => stringifyTree(n.l) + ', ' + stringifyTree(n.r)
-	})(tree)
-};
+import { Leaf, matcher, Node, relabelTree, stringifyTree, Tree, WithCounter } from '../src/tree';
 
 const createLeaf = <T>(value: T): Leaf<T> => ({ _type: 'leaf', value: value });
 const createNode = <T>(l: Tree<T>, r: Tree<T>): Node<T> => ({ _type: 'node', l, r });
+
 
 describe('a Tree', () => {
 
@@ -81,41 +48,21 @@ describe('a Tree', () => {
 		})
 	})
 
-	interface Tuple<T> {
-		value: T
-		index: number
-	}
-
-	type Relabel<T> = (x: number) => Tuple<Tree<Tuple<T>>>
-
-	function relabel<T>(tree: Tree<T>): Relabel<T> {
-		return i => matcher<Tuple<Tree<Tuple<T>>>, T>({
-			leaf: l => ({ value: { _type: 'leaf', value: { value: l.value, index: i } }, index: i }),
-			node: n => {
-				const { value: l, index: i1 } = relabel(n.l)(i)
-				const { value: r, index: i2 } = relabel(n.r)(i1 + 1)
-				return { value: { _type: 'node', l, r }, index: i2 };
-			}
-		})(tree)
-	}
-
-
 	describe('can relabel', () => {
-
-		function stringifyRelabel<T>(tuple: Tree<Tuple<T>>): string {
-			return matcher<string, Tuple<T>>({
-				leaf: (l: Leaf<Tuple<T>>) => {
-					return `${ l.value.index }:${l.value.value}`
+		const stringifyRelabel = <T>(tree: Tree<WithCounter<T>>): string => {
+			return matcher<string, WithCounter<T>>({
+				leaf: (l: Leaf<WithCounter<T>>) => {
+					return `${ l.value[1] }:${ l.value[0] }`
 				},
-				node: (n: Node<Tuple<T>>) => {
-					return stringifyRelabel(n.l) + '-' + stringifyRelabel(n.r)
+				node: (n: Node<WithCounter<T>>) => {
+					return stringifyRelabel<T>(n.l) + '-' + stringifyRelabel<T>(n.r)
 				}
-			})(tuple)
-		}
+			})(tree)
+		};
 
 		it('can relabel leaf', () => {
 			const tree = createLeaf('w')
-			expect(relabel(tree)(1).value).to.eql({ _type: 'leaf', value: { value: 'w', index: 1 } })
+			expect(relabelTree(tree)(1)[0]).to.eql({ _type: 'leaf', value: ['w', 1] })
 		})
 
 		it('can relabel small tree', () => {
@@ -123,10 +70,10 @@ describe('a Tree', () => {
 			const l2 = createLeaf('b')
 			const tree = createNode(l1, l2)
 
-			expect(relabel(tree)(1).value).to.eql({
+			expect(relabelTree(tree)(1)[0]).to.eql({
 				_type: 'node',
-				l: { _type: 'leaf', value: { value: 'a', index: 1 } },
-				r: { _type: 'leaf', value: { value: 'b', index: 2 } }
+				l: { _type: 'leaf', value: ['a', 1] },
+				r: { _type: 'leaf', value: ['b', 2] }
 			})
 		})
 
@@ -136,13 +83,13 @@ describe('a Tree', () => {
 			const l3 = createLeaf('c')
 			const tree = createNode(l1, createNode(l2, l3))
 
-			expect(relabel(tree)(1).value).to.eql({
+			expect(relabelTree(tree)(1)[0]).to.eql({
 				_type: 'node',
-				l: { _type: 'leaf', value: { value: 'a', index: 1 } },
+				l: { _type: 'leaf', value: ['a', 1] },
 				r: {
 					_type: 'node',
-					l: { _type: 'leaf', value: { value: 'b', index: 2 } },
-					r: { _type: 'leaf', value: { value: 'c', index: 3 } }
+					l: { _type: 'leaf', value: ['b', 2] },
+					r: { _type: 'leaf', value: ['c', 3] }
 				}
 			})
 		})
@@ -153,30 +100,46 @@ describe('a Tree', () => {
 			const l3 = createLeaf('c')
 			const tree = createNode(createNode(l1, l1), createNode(l2, l3))
 
-			expect(relabel(tree)(1).value).to.eql({
+			expect(relabelTree(tree)(1)[0]).to.eql({
 				_type: 'node',
 				l: {
 					_type: 'node',
-					l: { _type: 'leaf', value: { value: 'a', index: 1 } },
-					r: { _type: 'leaf', value: { value: 'a', index: 2 } }
+					l: { _type: 'leaf', value: ['a', 1] },
+					r: { _type: 'leaf', value: ['a', 2] }
 				},
 				r: {
 					_type: 'node',
-					l: { _type: 'leaf', value: { value: 'b', index: 3 } },
-					r: { _type: 'leaf', value: { value: 'c', index: 4 } }
+					l: { _type: 'leaf', value: ['b', 3] },
+					r: { _type: 'leaf', value: ['c', 4] }
 				}
 			})
 
-			expect(stringifyRelabel(relabel<string>(tree)(1).value)).to.eql('1:a-2:a-3:b-4:c')
+			// expect(stringifyRelabel(relabelTree<string>(tree)(1)[0])).to.eql('1:a-2:a-3:b-4:c')
 		})
 
+		it('can stringify a leaf', () => {
+			const tree = createLeaf('a')
+
+			const [relabelled] = relabelTree<string>(tree)(1);
+
+			expect(stringifyRelabel(relabelled)).to.eql('1:a')
+		})
+		it('can stringify a small tree', () => {
+			const l = createLeaf('a')
+			const r = createLeaf('b')
+			const tree = createNode(l, r)
+
+			const [relabelled] = relabelTree<string>(tree)(1);
+			expect(stringifyRelabel(relabelled)).to.eql('1:a-2:b')
+		})
 		it('can relabel a ', () => {
 			const l1 = createLeaf('a')
 			const l2 = createLeaf('b')
 			const l3 = createLeaf('c')
 			const tree = createNode(createNode(l1, createNode(l2, l1)), createNode(l2, l3))
 
-			expect(stringifyRelabel(relabel<string>(tree)(1).value)).to.eql('1:a-2:b-3:a-4:b-5:c')
+			const [relabelled] = relabelTree<string>(tree)(1);
+			expect(stringifyRelabel(relabelled)).to.eql('1:a-2:b-3:a-4:b-5:c')
 		})
 	})
 });
