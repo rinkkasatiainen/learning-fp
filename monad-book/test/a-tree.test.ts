@@ -1,5 +1,14 @@
 import { expect } from 'chai';
-import { Leaf, matcher, Node, relabelTree, stringifyTree, Tree, WithCounter } from '../src/tree';
+import {
+	Counter,
+	Leaf,
+	matcher,
+	Node,
+	relabelTree,
+	relabelTreeHO,
+	stringifyTree,
+	Tree,
+} from '../src/tree';
 
 const createLeaf = <T>(value: T): Leaf<T> => ({ _type: 'leaf', value: value });
 const createNode = <T>(l: Tree<T>, r: Tree<T>): Node<T> => ({ _type: 'node', l, r });
@@ -49,12 +58,12 @@ describe('a Tree', () => {
 	})
 
 	describe('can relabel', () => {
-		const stringifyRelabel = <T>(tree: Tree<WithCounter<T>>): string => {
-			return matcher<string, WithCounter<T>>({
-				leaf: (l: Leaf<WithCounter<T>>) => {
+		const stringifyRelabel = <T>(tree: Tree<Counter<T>>): string => {
+			return matcher<string, Counter<T>>({
+				leaf: (l: Leaf<Counter<T>>) => {
 					return `${ l.value[1] }:${ l.value[0] }`
 				},
-				node: (n: Node<WithCounter<T>>) => {
+				node: (n: Node<Counter<T>>) => {
 					return stringifyRelabel<T>(n.l) + '-' + stringifyRelabel<T>(n.r)
 				}
 			})(tree)
@@ -136,10 +145,12 @@ describe('a Tree', () => {
 			const l1 = createLeaf('a')
 			const l2 = createLeaf('b')
 			const l3 = createLeaf('c')
-			const tree = createNode(createNode(l1, createNode(l2, l1)), createNode(l2, l3))
+			const l4 = createLeaf('d')
+			const l5 = createLeaf('f')
+			const tree = createNode(createNode(l1, createNode(l2, l3)), createNode(l4, l5))
 
-			const [relabelled] = relabelTree<string>(tree)(1);
-			expect(stringifyRelabel(relabelled)).to.eql('1:a-2:b-3:a-4:b-5:c')
+			const [relabelled] = relabelTreeHO<string>(tree)(1);
+			expect(stringifyRelabel(relabelled)).to.eql('1:a-2:b-3:c-4:d-5:f')
 		})
 	})
 });
