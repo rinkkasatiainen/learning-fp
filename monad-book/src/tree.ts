@@ -1,4 +1,5 @@
-import { Counter, next, pure, WithCounter } from './state';
+import { next, pure, State, Tuple} from './state';
+import { Counter, nextCounter, WithCounter } from './with-counter';
 
 interface NodeType<T> {
 	_type: T
@@ -52,7 +53,7 @@ export function relabelTree<A>(tree: Tree<A>): Relabel<A> {
 }
 
 function nextTree<A>(x: WithCounter<Tree<Counter<A>>>) {
-	return next<Tree<Counter<A>>, Tree<Counter<A>>>(x)
+	return nextCounter<Tree<Counter<A>>, Tree<Counter<A>>>(x)
 }
 
 export const relabelTreeHO = <A>(tree: Tree<A>): WithCounter<Tree<Counter<A>>> => matcher<A, Relabel<A>>({
@@ -62,3 +63,18 @@ export const relabelTreeHO = <A>(tree: Tree<A>): WithCounter<Tree<Counter<A>>> =
 			nextTree<A>(relabelTreeHO<A>(n.r))(rr =>
 				pure({ _type: 'node', l: ll, r: rr })))
 })(tree);
+
+export const relabelTreeWithText: <A, B>(inc: (x: B) => B) => (tree: Tree<A>) => State<Tree<Tuple<A,B>>, B>
+	= <A, B>(inc: (x: B)=>B) => ( tree: Tree<A>) => {
+	const recurse = relabelTreeWithText<A, B>(inc);
+
+	return matcher<A, State<Tree<Tuple<A,B>>, B>>({
+		leaf: l => i => {
+			return [{ _type: 'leaf', value: [l.value, i] }, inc(i)];
+		},
+		node: n =>
+			next(recurse(n.l))(l =>
+				next(recurse(n.r))(r =>
+					pure({ _type: 'node', l, r})))
+	})(tree);
+};

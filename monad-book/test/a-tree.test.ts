@@ -4,11 +4,11 @@ import {
 	matcher,
 	Node,
 	relabelTree,
-	relabelTreeHO,
+	relabelTreeHO, relabelTreeWithText,
 	stringifyTree,
 	Tree,
 } from '../src/tree';
-import { Counter } from '../src/state';
+import { Tuple } from '../src/state';
 
 const createLeaf = <T>(value: T): Leaf<T> => ({ _type: 'leaf', value: value });
 const createNode = <T>(l: Tree<T>, r: Tree<T>): Node<T> => ({ _type: 'node', l, r });
@@ -58,13 +58,13 @@ describe('a Tree', () => {
 	})
 
 	describe('can relabel', () => {
-		const stringifyRelabel = <T>(tree: Tree<Counter<T>>): string => {
-			return matcher<string, Counter<T>>({
-				leaf: (l: Leaf<Counter<T>>) => {
+		const stringifyRelabel = <A, B>(tree: Tree<Tuple<A, B>>): string => {
+			return matcher<Tuple<A, B>, string>({
+				leaf: (l: Leaf<Tuple<A, B>>) => {
 					return `${ l.value[1] }:${ l.value[0] }`
 				},
-				node: (n: Node<Counter<T>>) => {
-					return stringifyRelabel<T>(n.l) + '-' + stringifyRelabel<T>(n.r)
+				node: (n: Node<Tuple<A, B>>) => {
+					return stringifyRelabel<A, B>(n.l) + '-' + stringifyRelabel<A, B>(n.r)
 				}
 			})(tree)
 		};
@@ -151,6 +151,20 @@ describe('a Tree', () => {
 
 			const [relabelled] = relabelTreeHO<string>(tree)(1);
 			expect(stringifyRelabel(relabelled)).to.eql('1:a-2:b-3:c-4:d-5:f')
+			// const [relabelledText] = relabelTreeWithText<string, string>(x => x+"a")(tree)('_');
+			const [relabelledText] = relabelTreeWithText<string, string>(x => x+"foo")(createLeaf("a"))('_');
+			expect(stringifyRelabel(relabelledText)).to.eql('_:a')
+		})
+		it('relabel with a whole state!', () => {
+			const l1 = createLeaf(1)
+			const l2 = createLeaf(2)
+			// const l3 = createLeaf('c')
+			// const l4 = createLeaf('d')
+			// const l5 = createLeaf('f')
+			const tree = createNode(l1, l2)
+
+			const [relabelledText] = relabelTreeWithText<number, string>(x => x+"+")(tree)('_');
+			expect(stringifyRelabel(relabelledText)).to.eql('_:1-_+:2')
 		})
 	})
 });
