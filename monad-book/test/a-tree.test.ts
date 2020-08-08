@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import {
-	Counter,
 	Leaf,
 	matcher,
 	Node,
@@ -9,6 +8,7 @@ import {
 	stringifyTree,
 	Tree,
 } from '../src/tree';
+import { Counter } from '../src/state';
 
 const createLeaf = <T>(value: T): Leaf<T> => ({ _type: 'leaf', value: value });
 const createNode = <T>(l: Tree<T>, r: Tree<T>): Node<T> => ({ _type: 'node', l, r });
