@@ -52,8 +52,8 @@ describe('a Tree', () => {
         })
 
         it('should be printable towards left', () => {
-            const tree = createNode(createNode(l2, l3), l1)
-            expect(stringifyTree(tree)).to.eql('b, c, a')
+            const leftTree = createNode(createNode(l2, l3), l1)
+            expect(stringifyTree(leftTree)).to.eql('b, c, a')
         })
     })
     describe('can relabel', () => {

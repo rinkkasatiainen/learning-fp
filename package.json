@@ -5,6 +5,7 @@
   "scripts": {
     "test": "NODE_ENV=test ts-mocha */test/**.test.ts",
     "lint": "eslint './*/src/**/*.ts' './*/test/**/*.ts'",
+    "lint:monad": "eslint './monad-book/src/**/*.ts' './monad-book/test/**/*.ts'",
     "lint:fix": "yarn lint --fix"
   },
   "license": "MIT",
