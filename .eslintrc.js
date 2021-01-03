@@ -170,7 +170,7 @@ module.exports = {
         "import/order": "error",
         "indent": [
             "error",
-            "tab"
+            4
         ],
         "linebreak-style": [
             "error",
@@ -186,6 +186,7 @@ module.exports = {
                 "code": 120
             }
         ],
+        "mocha/no-mocha-arrows": "off",
         "new-parens": "error",
         "no-array-constructor": "off",
         "no-async-promise-executor": "error",
