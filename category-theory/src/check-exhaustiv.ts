@@ -14,5 +14,5 @@
  * </pre></code>
  */
 export const checkExhaustive = (x: never): never => {
-	throw new Error('Unexpected object: ' + JSON.stringify(x))
+    throw new Error('Unexpected object: ' + JSON.stringify(x))
 }
