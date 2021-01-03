@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { createLeaf, createNode, stringifyRelabel } from './tree-helpers';
-import { Leaf, relabelTree, relabelTreeHO, relabelTreeWithText, stringifyTree, Tree, } from '../src/tree';
+import { Leaf, relabelTree, stringifyTree, Tree, } from '../src/tree';
 
 describe('a Tree', () => {
 
@@ -38,10 +38,14 @@ describe('a Tree', () => {
 		const l1 = createLeaf('a')
 		const l2 = createLeaf('b')
 		const l3 = createLeaf('c')
-		const tree = createNode(l1, createNode(l2, l3))
 
 		it('should be printable', () => {
+			const tree = createNode(l1, createNode(l2, l3))
 			expect(stringifyTree(tree)).to.eql('a, b, c')
+		})
+		it('should be printable towards left', () => {
+			const tree = createNode(createNode(l2, l3), l1)
+			expect(stringifyTree(tree)).to.eql('b, c, a')
 		})
 	})
 	describe('can relabel', () => {

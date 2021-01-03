@@ -39,14 +39,11 @@ type Relabel<T> = WithCounter<Tree<Counter<T>>>
 export function relabelTree<A>(tree: Tree<A>): Relabel<A> {
 	return i => matcher<A, Counter<Tree<Counter<A>>>>({
 		leaf: l => {
-			// console.log({v: l.value, i})
 			return [{ _type: 'leaf', value: [l.value, i] }, i + 1];
 		},
 		node: n => {
-			// console.log(n, i)
 			const [l, i1] = relabelTree<A>(n.l)(i)
 			const [r, i2] = relabelTree<A>(n.r)(i1)
-			// console.log(r, i2)
 			return [{ _type: 'node', l, r }, i2]
 		}
 	})(tree)
