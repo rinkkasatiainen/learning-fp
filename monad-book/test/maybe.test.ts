@@ -6,6 +6,7 @@ import {identity} from '../src/maybe/identity'
 import {map} from '../src/maybe/map'
 import {flip} from '../src/maybe/flip'
 import {flatten} from '../src/maybe/flatten'
+import {fmap} from '../src/maybe/fmap'
 
 
 const maybe: <A>(x: A) => Maybe<A> = x => {
@@ -148,6 +149,18 @@ describe('Both, Maybe? I Don’t Think That’s an Option', () => {
 
         it('can flatten it', () => {
             expect(add10(just<number>(10))).to.eql(just(20))
+        })
+    })
+
+    describe('fmap', () => {
+        const thenF: <A, B>(x: Maybe<A>) => (f: (a: A) => Maybe<B>) => Maybe<B> =
+            <A, B>(m: Maybe<A>) => (f: (a: A) => Maybe<B>) => flatten(fmap<A, B>(f)(m))
+
+        const times30: (m: Maybe<number>) => Maybe<number> =
+            (m: Maybe<number>) => thenF<number, number>(m)(x => just(x * 30))
+
+        it('can flatten it', () => {
+            expect(times30(just<number>(10))).to.eql(just(300))
         })
     })
 })
