@@ -1,12 +1,12 @@
 import {expect} from 'chai'
-import {Tuple} from '../src/state'
-import {Just, matcherMaybe, Maybe} from '../src/maybe'
-import {then} from '../src/maybe/then'
-import {identity} from '../src/maybe/identity'
-import {map} from '../src/maybe/map'
-import {flip} from '../src/maybe/flip'
-import {flatten} from '../src/maybe/flatten'
-import {fmap} from '../src/maybe/fmap'
+import {Tuple} from '../../src/state'
+import {Just, matcherMaybe, Maybe} from '../../src/maybe'
+import {then} from '../../src/maybe/then'
+import {identity} from '../../src/maybe/identity'
+import {map} from '../../src/maybe/map'
+import {flip} from '../../src/maybe/flip'
+import {flatten} from '../../src/maybe/flatten'
+import {fmap} from '../../src/maybe/fmap'
 
 
 const maybe: <A>(x: A) => Maybe<A> = x => {

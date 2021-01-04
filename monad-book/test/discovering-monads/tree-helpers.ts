@@ -1,5 +1,5 @@
-import { Leaf, matcher, Node, Tree } from '../src/tree'
-import { Tuple } from '../src/state'
+import { Leaf, matcher, Node, Tree } from '../../src/tree'
+import { Tuple } from '../../src/state'
 
 export const createLeaf = <T>(value: T): Leaf<T> => ({ _type: 'leaf', value })
 export const createNode = <T>(l: Tree<T>, r: Tree<T>): Node<T> => ({ _type: 'node', l, r })

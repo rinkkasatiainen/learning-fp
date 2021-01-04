@@ -1,5 +1,5 @@
 import {expect} from 'chai'
-import {concat, map, singleton} from '../src/lists'
+import {concat, map, singleton} from '../../src/lists'
 
 describe('Magical Multiplying Boxes', () => {
     describe('lists', () => {

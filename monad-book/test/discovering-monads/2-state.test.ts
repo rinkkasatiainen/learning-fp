@@ -1,5 +1,5 @@
 import {expect} from 'chai'
-import {Leaf, Node, relabelTree, relabelTreeHO, relabelTreeHOV2, relabelTreeWithText} from '../src/tree'
+import {Leaf, Node, relabelTree, relabelTreeHO, relabelTreeHOV2, relabelTreeWithText} from '../../src/tree'
 import {createLeaf, createNode, stringifyRelabel} from './tree-helpers'
 
 
