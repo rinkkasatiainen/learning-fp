@@ -1,20 +1,12 @@
 import {expect} from 'chai'
 import {Tuple} from '../src/state'
+import {Just, matcherMaybe, Maybe} from '../src/maybe'
+import {then} from '../src/maybe/then'
+import {identity} from '../src/maybe/identity'
+import {map} from '../src/maybe/map'
+import {flip} from '../src/maybe/flip'
+import {flatten} from '../src/maybe/flatten'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-type MaybeKeys = 'none' | 'some'
-
-interface MaybeType<T extends MaybeKeys> {
-    _maybeType: T;
-}
-
-type Nothing = MaybeType<'none'>
-
-interface Just<A> extends MaybeType<'some'> {
-    _value: A;
-}
-
-type Maybe<A> = Nothing | Just<A>
 
 const maybe: <A>(x: A) => Maybe<A> = x => {
     if (x) {
@@ -22,19 +14,6 @@ const maybe: <A>(x: A) => Maybe<A> = x => {
     }
     return {_maybeType: 'none'}
 }
-
-type MaybeMatcherMap<A, B> = {
-    [K in MaybeKeys]: A extends { _maybeType: K } ? A : never
-}
-type MaybeTypeMap<A> = MaybeMatcherMap<Maybe<A>, A>
-type Pattern<A, B> = {
-    [K in MaybeKeys]: (shape: MaybeTypeMap<A>[K]) => B
-}
-
-export const matcherMaybe: <A, B>(pattern: Pattern<A, B>) => (maybe: Maybe<A>) => B =
-    // eslint-disable-next-line no-underscore-dangle, @typescript-eslint/no-explicit-any
-    pattern => m => pattern[m._maybeType](m as any)
-
 
 describe('Both, Maybe? I Don’t Think That’s an Option', () => {
 
@@ -53,12 +32,13 @@ describe('Both, Maybe? I Don’t Think That’s an Option', () => {
     } : {_maybeType: 'none'}
     const validateName: (x: string) => Maybe<string> = (x => ofMaybe(x)(x.length > 5))
     const validateAge: (x: number) => Maybe<number> = (x => ofMaybe(x)(x > 10))
-    const none: () => Nothing = () => ({_maybeType: 'none'})
-    const just: <A>(x: A) => Just<A> = x => ({_maybeType: 'some', _value: x})
+    const none: () => Maybe<never> = () => ({_maybeType: 'none'})
+    const just: <A>(x: A) => Maybe<A> = x => ({_maybeType: 'some', _value: x})
 
     describe('can validate person', () => {
 
         const validatePerson: (name: string, age: number) => Maybe<Tuple<string, number>> =
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             (name, age) => matcherMaybe({
                 none,
                 some: (_name: Just<string>) => matcherMaybe<number, Maybe<Tuple<string, number>>>({
@@ -79,7 +59,7 @@ describe('Both, Maybe? I Don’t Think That’s an Option', () => {
 
     describe('can turn it into a higher-order-function', () => {
 
-        const then: <A, B>(x: Maybe<A>) => (f: (a: A) => Maybe<B>) => Maybe<B> =
+        const thenFunction: <A, B>(x: Maybe<A>) => (f: (a: A) => Maybe<B>) => Maybe<B> =
             <A>(m: Maybe<A>) => <B>(f: (a: A) => Maybe<B>) => matcherMaybe({
                 none,
                 some: (val: Just<A>) => f(val._value),
@@ -87,8 +67,8 @@ describe('Both, Maybe? I Don’t Think That’s an Option', () => {
 
         const validatePerson: (name: string, age: number) => Maybe<Tuple<string, number>> =
             (name, age) =>
-                then<string, Tuple<string, number>>(validateName(name))(_name =>
-                    then<number, Tuple<string, number>>(validateAge(age))(_age => just([_name, _age]))
+                thenFunction<string, Tuple<string, number>>(validateName(name))(_name =>
+                    thenFunction<number, Tuple<string, number>>(validateAge(age))(_age => just([_name, _age]))
                 )
         it('can validate person', () => {
             expect(validatePerson('long name', 15)).to.eql(just(['long name', 15]))
@@ -100,5 +80,74 @@ describe('Both, Maybe? I Don’t Think That’s an Option', () => {
             expect(validatePerson('Aki Salmi', 10)).to.eql(none())
         })
 
-    });
+    })
+
+    describe('can map on a Maybe', () => {
+        const mapMaybe: <A, B>(f: (a: A) => B) => (m: Maybe<A>) => Maybe<B> =
+            <A, B>(f: (a: A) => B) => (m: Maybe<A>) => matcherMaybe({
+                none,
+                some: (val: Just<A>) => just(f(val._value)),
+            })(m)
+
+        it('can map', () => {
+            const double = (x: number) => x * x
+
+            expect(mapMaybe(double)(just<number>(10))).to.eql(just(100))
+        })
+    })
+
+    describe('can flatten a Maybe', () => {
+        const flattenFunction: <A>(m: Maybe<Maybe<A>>) => Maybe<A> =
+            <A>(m: Maybe<Maybe<A>>) => matcherMaybe({
+                none,
+                some: (val: Just<Maybe<A>>) => val._value,
+            })(m)
+
+        it('can flatten it', () => {
+            expect(flattenFunction(just(just(10)))).to.eql(just(10))
+        })
+    })
+
+    describe('can flatten two Maybes with `then`', () => {
+        const flattenFunction: <A>(m: Maybe<Maybe<A>>) => Maybe<A> =
+            <A>(m: Maybe<Maybe<A>>) => then<Maybe<A>, A>(m)(identity)
+
+        it('can flatten it', () => {
+            expect(flattenFunction(just(just(10)))).to.eql(just(10))
+        })
+    })
+
+    describe('flip function', () => {
+        const spy: <A, B>(arg1: A) => (arg2: B) => { getArgs: () => { arg1: A; arg2: B } } =
+            (arg1) => (arg2) => ({
+                getArgs: () => ({arg1, arg2}),
+            })
+
+        const flipFunction: <A, B, C>(f: (arg1: A) => (arg2: B) => C) => (a2: B) => (a1: A) => C =
+            f => a2 => a1 => f(a1)(a2)
+
+
+        it('can spy arguments', () => {
+            expect(spy(1)('two').getArgs()).to.eql({arg1: 1, arg2: 'two'})
+        })
+        it('can flip arguments', () => {
+            const f = flipFunction(spy)
+            expect(f(1)('two').getArgs()).to.eql({arg1: 'two', arg2: 1})
+        })
+    })
+
+    describe('can implement `then` with `map` reversed', () => {
+        const thenF: <A, B>(x: Maybe<A>) => (f: (a: A) => Maybe<B>) => Maybe<B> =
+            <A, B>(m: Maybe<A>) => (f: (a: A) => Maybe<B>) => {
+                const flippedMap = flip<(a: A) => Maybe<B>, Maybe<A>, Maybe<Maybe<B>>>(map)
+                return flatten(flippedMap(m)(f))
+            }
+
+        const add10: (m: Maybe<number>) => Maybe<number> =
+            (m: Maybe<number>) => thenF<number, number>(m)(x => just(x + 10))
+
+        it('can flatten it', () => {
+            expect(add10(just<number>(10))).to.eql(just(20))
+        })
+    })
 })
