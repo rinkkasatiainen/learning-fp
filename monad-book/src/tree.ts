@@ -61,8 +61,8 @@ export const relabelTreeHO = <A>(tree: Tree<A>): WithCounter<Tree<Counter<A>>> =
 export const relabelTreeHOV2 = <A>(tree: Tree<A>): WithCounter<Tree<Counter<A>>> => matcher<A, Relabel<A>>({
     leaf: l => i => [{_type: 'leaf', value: [l.value, i]}, i + 1],
     node: n =>
-        next(relabelTreeHOV2(n.l))(ll =>
-            next(relabelTreeHOV2(n.r))(rr =>
+        next<Tree<Tuple<A,number>>, Tree<Tuple<A,number>>, number>(relabelTreeHOV2(n.l))(ll =>
+            next<Tree<Tuple<A,number>>, Tree<Tuple<A,number>>, number>(relabelTreeHOV2(n.r))(rr =>
                 pure({_type: 'node', l: ll, r: rr}))),
 })(tree)
 
@@ -73,8 +73,8 @@ export const relabelTreeWithText: <A, B>(inc: (x: B) => B) => (tree: Tree<A>) =>
         return matcher<A, State<Tree<Tuple<A, B>>, B>>({
             leaf: l => i => [{_type: 'leaf', value: [l.value, i]}, inc(i)],
             node: n =>
-                next(recurse(n.l))(l =>
-                    next(recurse(n.r))(r =>
+                next<Tree<Tuple<A,B>>, Tree<Tuple<A,B>>, B>(recurse(n.l))(l =>
+                    next<Tree<Tuple<A,B>>, Tree<Tuple<A,B>>, B>(recurse(n.r))(r =>
                         pure({_type: 'node', l, r}))),
         })(tree)
     }
