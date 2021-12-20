@@ -6,26 +6,38 @@ import {checkExhaustive} from '../src/check-exhaustiv'
 
 describe('Simple Algebraic Data Types - https://bartoszmilewski.com/2015/01/13/simple-algebraic-data-types/', () => {
     describe('1 - isomorphism between \'Maybe a\' and \'Either () a\'', () => {
-        it('does something', () => {
-            interface Any {
-                anything: string;
-            }
+        interface Any {
+            anything: string;
+        }
 
-            const anything: Any = {anything: 'thing'}
-            const maybeA = just(anything)
-            const nothing = none()
-            const rightA = right(anything)
-            const leftA = left(undefined)
+        const anything: Any = {anything: 'thing'}
+        /* eslint-disable mocha/no-setup-in-describe */
+        const maybeA = just(anything)
+        const nothing = none()
+        const rightA = right(anything)
+        const leftA = left(undefined)
+        const throwErrorIfCalled = () => {
+            throw new Error('should not be called')
+        }
+        /* eslint-enable mocha/no-setup-in-describe */
 
-            expect(maybe<Any, Either<never, Any>>(right)(maybeA)).to.eql(rightA)
-            expect(either<never, Any, Some<Any>>(() => {
-                throw Error('Never!')
-            })(just)(rightA)).to.eql(maybeA)
+        it('converts left to nothing, and vice versa', () => {
+            expect(toMaybe(throwErrorIfCalled)(leftA)).to.eql(nothing)
+            expect(toEither(() => leftA)(throwErrorIfCalled)(nothing)).to.eql(left(undefined))
 
             expect(toEither(() => left(undefined))(right)(nothing)).to.eql(leftA)
             expect(toMaybe(just)(leftA)).to.eql(nothing)
+        })
 
-            // Add tests for isomorphims both ways.
+        it('converts just to right, and vice versa', () => {
+            // call method 'right' on just
+            expect(maybe<Any, Either<never, Any>>(right)(maybeA)).to.eql(rightA)
+            // call method 'just' on right
+            expect(either<never, Any, Some<Any>>(throwErrorIfCalled)(just)(rightA)).to.eql(maybeA)
+
+            // these equal to
+            expect( toEither(throwErrorIfCalled)(right)(maybeA) ).to.eql(rightA)
+            expect( toMaybe(just)(rightA) ).to.eql(maybeA)
         })
     })
 
@@ -95,6 +107,7 @@ describe('Simple Algebraic Data Types - https://bartoszmilewski.com/2015/01/13/s
                 circ: () => number;
             }
 
+            /*  eslint-disable mocha/no-setup-in-describe */
             class OOCircle implements OOShape {
                 private r: number
 
@@ -128,6 +141,7 @@ describe('Simple Algebraic Data Types - https://bartoszmilewski.com/2015/01/13/s
                     return 2 * this._d * this._h
                 }
             }
+            /*  eslint-enable mocha/no-setup-in-describe */
 
             it('has area', () => {
                 expect(new OOCircle(2).area()).to.eql(area(circle(2)))

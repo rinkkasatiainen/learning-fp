@@ -1,5 +1,13 @@
 import {Either, Left, Right} from './either'
 
+export const fmap: <A, B>(f: (x: A) => B) => (m: Maybe<A>) => Maybe<B> =
+    f => m => {
+        if (m.isJust) {
+            return just(f(get(m)))
+        }
+        return none()
+    }
+
 export interface IsValid<T> {
     isJust: T;
 }
