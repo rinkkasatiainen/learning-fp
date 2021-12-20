@@ -26,7 +26,8 @@ export const get: <A>(value: Maybe<A>) => A | never =
 export const id: <A>(value: A) => A =
     value => value
 
-export const toEither: <A, B>(onNone: () => Left<A>) => (onSome: (y: B) => Right<B>) => (maybe: Maybe<B>) => Either<A, B> =
+export const toEither:
+    <A, B>(onNone: () => Left<A>) => (onSome: (y: B) => Right<B>) => (maybe: Maybe<B>) => Either<A, B> =
     onNone => onSome => _maybe => {
         if (_maybe.isJust) {
             return onSome(_maybe.value)

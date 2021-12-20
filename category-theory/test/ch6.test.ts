@@ -3,26 +3,30 @@ import {maybe, none, Some, just, toEither} from '../src/maybe'
 import {either, Either, left, right, toMaybe} from '../src/either'
 import {checkExhaustive} from '../src/check-exhaustiv'
 
+
 describe('Simple Algebraic Data Types - https://bartoszmilewski.com/2015/01/13/simple-algebraic-data-types/', () => {
     describe('1 - isomorphism between \'Maybe a\' and \'Either () a\'', () => {
+        it('does something', () => {
+            interface Any {
+                anything: string;
+            }
 
-        interface Any {
-            any: string;
-        }
+            const anything: Any = {anything: 'thing'}
+            const maybeA = just(anything)
+            const nothing = none()
+            const rightA = right(anything)
+            const leftA = left(undefined)
 
-        const anything: Any = {any: 'thing'}
-        const maybeA = just(anything)
-        const nothing = none()
-        const rightA = right(anything)
-        const leftA = left(undefined)
+            expect(maybe<Any, Either<never, Any>>(right)(maybeA)).to.eql(rightA)
+            expect(either<never, Any, Some<Any>>(() => {
+                throw Error('Never!')
+            })(just)(rightA)).to.eql(maybeA)
 
-        expect(maybe<Any, Either<never, Any>>(right)(maybeA)).to.eql(rightA)
-        expect(either<never, Any, Some<Any>>(() => {
-            throw Error('Never!')
-        })(just)(rightA)).to.eql(maybeA)
+            expect(toEither(() => left(undefined))(right)(nothing)).to.eql(leftA)
+            expect(toMaybe(just)(leftA)).to.eql(nothing)
 
-        expect(toEither(() => left(undefined))(right)(nothing)).to.eql(leftA)
-        expect(toMaybe(just)(leftA)).to.eql(nothing)
+            // Add tests for isomorphims both ways.
+        })
     })
 
     describe('2 - Shape', () => {
@@ -60,12 +64,12 @@ describe('Simple Algebraic Data Types - https://bartoszmilewski.com/2015/01/13/s
         const area: (x: Shape) => number =
             shape => {
                 switch (shape._shapeType) {
-                    case 'Circle':
-                        return Math.PI * shape.r * shape.r
-                    case 'Rect':
-                        return shape.d * shape.h
-                    default:
-                        return checkExhaustive(shape)
+                case 'Circle':
+                    return Math.PI * shape.r * shape.r
+                case 'Rect':
+                    return shape.d * shape.h
+                default:
+                    return checkExhaustive(shape)
                 }
             }
         const circ: (x: Shape) => number = matcher<number>({
@@ -92,35 +96,35 @@ describe('Simple Algebraic Data Types - https://bartoszmilewski.com/2015/01/13/s
             }
 
             class OOCircle implements OOShape {
-                private r: number;
+                private r: number
 
-                constructor(r: number) {
+                public constructor(r: number) {
                     this.r = r
                 }
 
-                area(): number {
+                public area(): number {
                     return Math.PI * this.r * this.r
                 }
 
-                circ(): number {
+                public circ(): number {
                     return 2 * Math.PI * this.r
                 }
             }
 
             class OORect implements OOShape {
-                private _d: number;
-                private _h: number;
+                private _d: number
+                private _h: number
 
-                constructor(d: number, h: number) {
+                public constructor(d: number, h: number) {
                     this._d = d
                     this._h = h
                 }
 
-                area(): number {
+                public area(): number {
                     return this._d * this._h
                 }
 
-                circ(): number {
+                public circ(): number {
                     return 2 * this._d * this._h
                 }
             }

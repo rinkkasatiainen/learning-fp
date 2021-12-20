@@ -22,7 +22,8 @@ export interface Just<A> extends MaybeType<'some'> {
 }
 export type Maybe<A> = Nothing | Just<A>
 export const matcherMaybe: <A, B>(pattern: Pattern<A, B>) => (maybe: Maybe<A>) => B =
-    // eslint-disable-next-line no-underscore-dangle, @typescript-eslint/no-explicit-any
+    // TODO: Aks: Fix the typing
+    // eslint-disable-next-line no-underscore-dangle
     pattern => m => pattern[m._maybeType](m as any)
 
 
