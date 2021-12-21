@@ -5,7 +5,7 @@ import {then} from '../../src/maybe/then'
 import {identity} from '../../src/maybe/identity'
 import {map} from '../../src/maybe/map'
 import {flip} from '../../src/maybe/flip'
-import {flatten} from '../../src/maybe/flatten'
+import {flatten, flattenWithNoThen} from '../../src/maybe/flatten'
 import {fmap} from '../../src/maybe/fmap'
 
 
@@ -125,8 +125,6 @@ describe('Both, Maybe? I Don’t Think That’s an Option', () => {
 
             expect(flattenFuncWithFlip(just(just(3456)))).to.eql(just(3456))
         })
-
-
     })
 
     describe('flip function', () => {
@@ -152,14 +150,58 @@ describe('Both, Maybe? I Don’t Think That’s an Option', () => {
         const thenF: <A, B>(x: Maybe<A>) => (f: (a: A) => Maybe<B>) => Maybe<B> =
             <A, B>(m: Maybe<A>) => (f: (a: A) => Maybe<B>) => {
                 const flippedMap = flip<(a: A) => Maybe<B>, Maybe<A>, Maybe<Maybe<B>>>(map)
-                return flatten(flippedMap(m)(f))
+                return flattenWithNoThen(flippedMap(m)(f))
             }
 
         const add10: (m: Maybe<number>) => Maybe<number> =
             (m: Maybe<number>) => thenF<number, number>(m)(x => just(x + 10))
 
+
         it('can flatten it', () => {
             expect(add10(just<number>(10))).to.eql(just(20))
+        })
+        it('can flatten it with flipped then', () => {
+            const add10Flipped: (m: Maybe<number>) => Maybe<number> = flip(thenF)(x => just(x + 10))
+
+            expect(add10Flipped(just<number>(11))).to.eql(just(21))
+        })
+        it('with thenFuction unrolled (do I get with less generics typing)', () => {
+            const thenFunc: <A, B>(x: Maybe<A>) => (f: (a: A) => Maybe<B>) => Maybe<B> =
+                <A, B>(m: Maybe<A>) => (f: (a: A) => Maybe<B>) => flattenWithNoThen(flip<(a: A) => Maybe<B>, Maybe<A>, Maybe<Maybe<B>>>(map)(m)(f))
+
+            const liftsToMaybe: (x: number) => Maybe<number> = x => just(x ** 3)
+
+            const unrolledF = flip(thenFunc)(liftsToMaybe)
+
+            expect(unrolledF(just(8))).to.eql(just(512))
+        })
+        it('with all unrolled 2', () => {
+            const liftsToMaybe: (x: number) => Maybe<number> = x => just(x ** 3)
+
+            /* eslint-disable max-len */
+            // const unrolledFSpecificToNumber: (m: Maybe<number>) => Maybe<number> =
+            //     flip<Maybe<number>, (a: number) => Maybe<number>, Maybe<number>>
+            //         (m => f =>
+            //             flattenWithNoThen(flip<(a: number) => Maybe<number>, Maybe<number>, Maybe<Maybe<number>>>(map)(m)(f)),
+            //         )( liftsToMaybe )
+
+            const unrolledF: <A extends number, B extends number>(m: Maybe<A>) => Maybe<B> =
+                <A extends number, B extends number>(x: Maybe<A>) =>
+                    flip<Maybe<A>, (a: A) => Maybe<B>, Maybe<B>>
+                        (
+                        m => f => flattenWithNoThen(flip<(a: A) => Maybe<B>, Maybe<A>, Maybe<Maybe<B>>>(map)(m)(f)),
+                        )(
+                        liftsToMaybe as (x: A) => Maybe<B>,
+                        )(x)
+
+            // const unrolledFWithExtraTyping: <A extends number, B extends number>(m: Maybe<A>) => Maybe<B> =
+            //     <A extends number, B extends number>(x: Maybe<A>) => flip<Maybe<A>, (a: A) => Maybe<B>, Maybe<B>>(m => f => {
+            //         const m1: Maybe<Maybe<B>> = flip<(a: A) => Maybe<B>, Maybe<A>, Maybe<Maybe<B>>>(map)(m)(f)
+            //         return flattenWithNoThen(m1)
+            //     })(liftsToMaybe as (x: A) => Maybe<B>)(x)
+            /* eslint-enable max-len */
+
+            expect(unrolledF(just(8))).to.eql(just(512))
         })
     })
 
