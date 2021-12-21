@@ -49,19 +49,22 @@ describe('Kleisli Categories, https://bartoszmilewski.com/2014/12/23/kleisli-cat
             const toUpper: (x: string) => Optional<string> = (input: string) => optionalOf<string>(input.toUpperCase())
 
             expect(optional).to.eql(mapOptional(optional)(id))
-            expect(mapOptional(optional)(toUpper)).to.eql(mapOptional<string, string>(mapOptional<string, string>(optional)(id))(toUpper))
+            expect(mapOptional(optional)(toUpper)).to.eql(
+                mapOptional<string, string>(mapOptional<string, string>(optional)(id))(toUpper)
+            )
         })
     })
 
-    const toNaturalNumber: (number: number) => Optional<number> = number => {
-        if (number === 0) {
+    const toNaturalNumber: (num: number) => Optional<number> = num => {
+        if (num === 0) {
             return none()
         }
-        return some(number)
+        return some(num)
     }
     const reciprocal: MapOptionalFunc<number, number> = num => some(1 / num)
 
-    const safeReciprocal: (x: Optional<number>) => Optional<number> = (optional) => mapOptional<number, number>(optional)(reciprocal)
+    const safeReciprocal: (x: Optional<number>) => Optional<number> =
+        (optional) => mapOptional<number, number>(optional)(reciprocal)
     describe('2 - safeReciprocal', () => {
         it('is not calculated for 0', () => {
             expect(toNaturalNumber(0)).to.eql(none())
@@ -75,7 +78,8 @@ describe('Kleisli Categories, https://bartoszmilewski.com/2014/12/23/kleisli-cat
     })
 
     type NaturalNumber = Optional<number>
-    const safeRoot: (x: NaturalNumber) => NaturalNumber = optional => mapOptional<number, number>(optional)(x => some(Math.sqrt(x)))
+    const safeRoot: (x: NaturalNumber) => NaturalNumber =
+            possiblyNaturalNumber => mapOptional<number, number>(possiblyNaturalNumber)(x => some(Math.sqrt(x)))
 
     describe('3 - safeRoot - reciprocal', () => {
         it('can calcuate root for NaturalNumber', () => {

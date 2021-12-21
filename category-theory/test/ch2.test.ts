@@ -1,16 +1,18 @@
 import {expect} from 'chai'
 
-const memoize: <T, U>(pureFunc: (x: T) => U) => (x: T) => U = <T, U>(func: (x: T) => U) => {
-    const cache: { [key: string]: U } = {}
-    const getS: (x: T) => string = (x: T) => `${x}`
+const memoize: <T extends number | string, U>(pureFunc: (x: T) => U) => (x: T) => U =
+    <T extends number | string, U>(func: (x: T) => U) => {
+        const cache: { [key: string]: U } = {}
+        const getS: (x: T) => string = (x: T) => `${x}`
 
-    return (args: T) => {
-        if (!(getS(args) in cache)) {
-            cache[getS(args)] = func(args)
+        return (args: T) => {
+            if (!(getS(args) in cache)) {
+                cache[getS(args)] = func(args)
+            }
+            return cache[getS(args)]
         }
-        return cache[getS(args)]
     }
-}
+
 
 describe('Types and Functions', () => {
     describe('memoize', () => {

@@ -12,7 +12,9 @@ describe('Products and Coproducts - https://bartoszmilewski.com/2015/01/07/produ
         return (res > 100) ? {value: 100} : {value: res}
     }
 
+    /* eslint-disable mocha/no-setup-in-describe */
     const maxTo100: (x: number) => LessThanHundred = upTo100({value: 0})
+    /* eslint-enable mocha/no-setup-in-describe */
 
     describe('terminal object', () => {
         it('is unique in unique isomorphic', () => {
@@ -51,13 +53,13 @@ describe('Products and Coproducts - https://bartoszmilewski.com/2015/01/07/produ
     const right: <A>(x: A) => Right<A> = value => ({isRight: true, isLeft: false, value})
 
     describe('4 - Either', () => {
-        const getLeft: <A>(x: Either<A, any>) => A = either => {
+        const getLeft: <A>(x: Either<A, unknown>) => A = either => {
             if (either.isLeft) {
                 return either.value
             }
             throw Error('cannot get Left of Right!')
         }
-        const getRight: <A>(x: Either<any, A>) => A = either => {
+        const getRight: <A>(x: Either<unknown, A>) => A = either => {
             if (either.isRight) {
                 return either.value
             }
@@ -75,6 +77,7 @@ describe('Products and Coproducts - https://bartoszmilewski.com/2015/01/07/produ
     })
 
     describe('5 - Show that Either is a “better” coproduct than int equipped with two injections:', () => {
+        /* eslint-disable mocha/no-setup-in-describe */
         const i: (x: number) => number = x => x
         const j: (x: boolean) => number = x => x ? 0 : 1
 
@@ -87,6 +90,7 @@ describe('Products and Coproducts - https://bartoszmilewski.com/2015/01/07/produ
             }
 
         const m: (x: Either<number, boolean>) => number = either<number, boolean, number>(i)(j)
+        /* eslint-enable mocha/no-setup-in-describe */
 
         it('m factorizes i and j.', () => {
             expect(m(left(3))).to.eql(3)

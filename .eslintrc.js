@@ -248,7 +248,7 @@ module.exports = {
         "no-trailing-spaces": "error",
         "no-undef": "error",
         "no-undef-init": "error",
-        "no-underscore-dangle": "warn",
+        // "no-underscore-dangle": "warn",
         "no-unexpected-multiline": "error",
         "no-unreachable": "error",
         "no-unsafe-finally": "error",

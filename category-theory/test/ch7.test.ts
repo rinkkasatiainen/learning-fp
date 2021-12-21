@@ -78,6 +78,6 @@ describe('Functors  - https://bartoszmilewski.com/2015/01/20/functors/', () => {
     })
 
     describe('2 - reader monad', () => {
-
+        it('should be tested')
     })
 })

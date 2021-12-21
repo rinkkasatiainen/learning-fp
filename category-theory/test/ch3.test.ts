@@ -4,19 +4,22 @@ describe('Categories Great and Small, https://bartoszmilewski.com/2014/12/05/cat
 
     describe('Bool as set of Two values', () => {
         class Bool {
-            private _value: boolean;
+            /* eslint-disable mocha/no-setup-in-describe */
+            private _value: boolean
 
-            constructor(val: boolean) {
+            public constructor(val: boolean) {
                 this._value = val
             }
 
-            and(bool: Bool) {
+            public and(bool: Bool) {
                 return new Bool(this._value && bool._value)
             }
 
-            or(bool: Bool) {
+            public or(bool: Bool) {
                 return new Bool(this._value || bool._value)
             }
+
+            /* eslint-enable mocha/no-setup-in-describe */
         }
 
         const truthy = new Bool(true)
@@ -60,13 +63,15 @@ describe('Categories Great and Small, https://bartoszmilewski.com/2014/12/05/cat
         }
 
         type Modulo3 = Mod<1> | Mod<2> | Mod<3>
-        const add: (x: Modulo3, y: number) => Modulo3 = (modulo, append) => ({value: modulo.value})
+        const mod3Of: (x: number) => Modulo3 = value => (({value: value % 3}) as Modulo3)
+        const add: (x: Modulo3, y: number) => Modulo3 = (modulo, append) => mod3Of( modulo.value + append)
 
         it('has identity function', () => {
-            const mod3Of: (x: number) => Modulo3 = value => ({value: value % 3})
             expect(add(mod3Of(1), 0)).to.eql(mod3Of(1))
             expect(add(mod3Of(2), 0)).to.eql(mod3Of(2))
             expect(add(mod3Of(3), 0)).to.eql(mod3Of(3))
         })
+
+        it('probably requires something else, too')
     })
 })

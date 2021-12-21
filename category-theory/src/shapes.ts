@@ -27,7 +27,7 @@ export const circle: (r: number) => Circle = r => ({r, _shapeType: 'Circle'})
 export const rect: (d: number, h: number) => Rect = (d, h) => ({d, h, _shapeType: 'Rect'})
 
 const matcher: <T>(pattern: Pattern<T>) => (shape: Shape) => T =
-    pattern => shape => pattern[shape._shapeType](shape as any)
+    pattern => shape => pattern[shape._shapeType](shape as never)
 
 export const area: (x: Shape) => number = matcher<number>({
     Circle: c => Math.PI * c.r * c.r,

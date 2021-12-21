@@ -1,3 +1,4 @@
+// eslint-disable-next-line max-classes-per-file
 import {expect} from 'chai'
 import {maybe, none, Some, just, toEither} from '../src/maybe'
 import {either, Either, left, right, toMaybe} from '../src/either'
@@ -15,18 +16,18 @@ describe('Simple Algebraic Data Types - https://bartoszmilewski.com/2015/01/13/s
         const maybeA = just(anything)
         const nothing = none()
         const rightA = right(anything)
-        const leftA = left(undefined)
+        const leftA = left('error')
         const throwErrorIfCalled = () => {
             throw new Error('should not be called')
         }
         /* eslint-enable mocha/no-setup-in-describe */
 
         it('converts left to nothing, and vice versa', () => {
-            expect(toMaybe(throwErrorIfCalled)(leftA)).to.eql(nothing)
-            expect(toEither(() => leftA)(throwErrorIfCalled)(nothing)).to.eql(left(undefined))
+            expect(toMaybe(leftA)).to.eql(nothing)
+            expect(toEither(() => leftA)(throwErrorIfCalled)(nothing)).to.eql(left('error'))
 
-            expect(toEither(() => left(undefined))(right)(nothing)).to.eql(leftA)
-            expect(toMaybe(just)(leftA)).to.eql(nothing)
+            expect(toEither(() => left('error'))(right)(nothing)).to.eql(leftA)
+            expect(toMaybe(leftA)).to.eql(nothing)
         })
 
         it('converts just to right, and vice versa', () => {
@@ -37,11 +38,12 @@ describe('Simple Algebraic Data Types - https://bartoszmilewski.com/2015/01/13/s
 
             // these equal to
             expect( toEither(throwErrorIfCalled)(right)(maybeA) ).to.eql(rightA)
-            expect( toMaybe(just)(rightA) ).to.eql(maybeA)
+            expect( toMaybe(rightA) ).to.eql(maybeA)
         })
     })
 
     describe('2 - Shape', () => {
+        /* eslint-disable mocha/no-setup-in-describe */
         interface ST<T> {
             _shapeType: T;
         }
@@ -68,7 +70,7 @@ describe('Simple Algebraic Data Types - https://bartoszmilewski.com/2015/01/13/s
         }
 
         const matcher: <T>(pattern: Pattern<T>) => (shape: Shape) => T =
-            pattern => shape => pattern[shape._shapeType](shape as any)
+            pattern => shape => pattern[shape._shapeType](shape as unknown as never)
 
         const circle: (r: number) => Circle = r => ({r, _shapeType: 'Circle'})
         const rect: (d: number, h: number) => Rect = (d, h) => ({d, h, _shapeType: 'Rect'})
@@ -88,6 +90,7 @@ describe('Simple Algebraic Data Types - https://bartoszmilewski.com/2015/01/13/s
             Circle: c => c.r * c.r * Math.PI,
             Rect: r => 2 * r.h * r.d,
         })
+        /* eslint-enable mocha/no-setup-in-describe */
 
         describe('2 - Shape in FP', () => {
             it(' has area', () => {

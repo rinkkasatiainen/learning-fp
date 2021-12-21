@@ -1,5 +1,5 @@
+// https://medium.com/@fillopeter/pattern-matching-with-typescript-done-right-94049ddd671c
 type MaybeKeys = 'none' | 'some'
-
 interface MaybeType<T extends MaybeKeys> {
     _maybeType: T;
 }
@@ -22,9 +22,5 @@ export interface Just<A> extends MaybeType<'some'> {
 }
 export type Maybe<A> = Nothing | Just<A>
 export const matcherMaybe: <A, B>(pattern: Pattern<A, B>) => (maybe: Maybe<A>) => B =
-    // TODO: Aks: Fix the typing
-    // eslint-disable-next-line no-underscore-dangle
-    pattern => m => pattern[m._maybeType](m as any)
-
-
-
+    // The type casting seems to work. As an alternative to 'any'
+    pattern => m => pattern[m._maybeType](m as unknown as never)

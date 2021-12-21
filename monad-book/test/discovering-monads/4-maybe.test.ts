@@ -69,7 +69,7 @@ describe('Both, Maybe? I Don’t Think That’s an Option', () => {
         const validatePerson: (name: string, age: number) => Maybe<Tuple<string, number>> =
             (name, age) =>
                 thenFunction<string, Tuple<string, number>>(validateName(name))(_name =>
-                    thenFunction<number, Tuple<string, number>>(validateAge(age))(_age => just([_name, _age]))
+                    thenFunction<number, Tuple<string, number>>(validateAge(age))(_age => just([_name, _age])),
                 )
         it('can validate person', () => {
             expect(validatePerson('long name', 15)).to.eql(just(['long name', 15]))
@@ -86,7 +86,7 @@ describe('Both, Maybe? I Don’t Think That’s an Option', () => {
     describe('can map on a Maybe', () => {
         const mapMaybe: <A, B>(f: (a: A) => B) => (m: Maybe<A>) => Maybe<B> =
             <A, B>(f: (a: A) => B) => (m: Maybe<A>) => matcherMaybe({
-                none,
+                none: () => none(),
                 some: (val: Just<A>) => just(f(val._value)),
             })(m)
 
@@ -116,6 +116,17 @@ describe('Both, Maybe? I Don’t Think That’s an Option', () => {
         it('can flatten it', () => {
             expect(flattenFunction(just(just(10)))).to.eql(just(10))
         })
+
+        it('can flatten with flip', () => {
+            const flattenFuncWithFlip: <A>(m: Maybe<Maybe<A>>) => Maybe<A> =
+                // <A, B>(m: Maybe<Maybe<A>>) =>
+                //    flip<Maybe<Maybe<A>>, (a: Maybe<A>) => Maybe<A>, Maybe<A>>(then)((x) => identity(x))(m)
+                flip(then)(identity)
+
+            expect(flattenFuncWithFlip(just(just(3456)))).to.eql(just(3456))
+        })
+
+
     })
 
     describe('flip function', () => {
