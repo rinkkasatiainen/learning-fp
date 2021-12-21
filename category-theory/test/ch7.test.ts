@@ -1,10 +1,8 @@
 import {expect} from 'chai'
-import {fmap, id, IsValid, just, maybe, Maybe, none} from '../src/maybe'
+import {fmap, id, IsValid, just, Maybe, none} from '../src/basics/maybe'
 
 const plus2: (x: number) => number = x => x + 2
 const times3: (x: number) => number = x => x * 3
-
-
 
 describe('Functors  - https://bartoszmilewski.com/2015/01/20/functors/', () => {
     describe('1 - Can we turn the Maybe type constructor into a functor by defining', () => {
@@ -122,10 +120,6 @@ describe('Functors  - https://bartoszmilewski.com/2015/01/20/functors/', () => {
                 value: A;
             }
 
-            interface NoneFunctor extends IsValid<false>, Functor<never> {
-            }
-
-            type MaybeFunctor<A> = SomeFunctor<A> | NoneFunctor
             /* eslint-disable mocha/no-setup-in-describe */
             class Some<A> implements SomeFunctor<A> {
                 public readonly isJust = true
@@ -135,6 +129,9 @@ describe('Functors  - https://bartoszmilewski.com/2015/01/20/functors/', () => {
 
                 public fmap<B>(f: (a: A) => B): <C>(f2: (b: B) => C) => Functor<C> {
                     return function <C>(g: (b: B) => C) {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                         return new Some(g(f(this.value)))
                     }.bind(this)
                 }

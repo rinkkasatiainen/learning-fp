@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { area, circ, circle, rect } from '../src/shapes'
+import { area, circ, circle, rect } from '../src/basics/shapes'
 
 describe('', () => {
     it('has area', () => {

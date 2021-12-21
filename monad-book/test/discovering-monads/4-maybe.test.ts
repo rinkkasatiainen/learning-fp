@@ -167,7 +167,8 @@ describe('Both, Maybe? I Don’t Think That’s an Option', () => {
         })
         it('with thenFuction unrolled (do I get with less generics typing)', () => {
             const thenFunc: <A, B>(x: Maybe<A>) => (f: (a: A) => Maybe<B>) => Maybe<B> =
-                <A, B>(m: Maybe<A>) => (f: (a: A) => Maybe<B>) => flattenWithNoThen(flip<(a: A) => Maybe<B>, Maybe<A>, Maybe<Maybe<B>>>(map)(m)(f))
+                <A, B>(m: Maybe<A>) => (f: (a: A) => Maybe<B>) =>
+                    flattenWithNoThen(flip<(a: A) => Maybe<B>, Maybe<A>, Maybe<Maybe<B>>>(map)(m)(f))
 
             const liftsToMaybe: (x: number) => Maybe<number> = x => just(x ** 3)
 

@@ -1,6 +1,6 @@
 import {Either, Left, Right} from './either'
 
-//fmap :: (a -> b) -> (r -> a) -> (r -> b)
+// fmap :: (a -> b) -> (r -> a) -> (r -> b)
 export const fmap: <A, B>(f: (x: A) => B) => (m: Maybe<A>) => Maybe<B> =
     f => m => {
         if (m.isJust) {

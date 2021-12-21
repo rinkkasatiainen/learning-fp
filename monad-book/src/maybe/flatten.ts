@@ -1,4 +1,4 @@
-import {Just, matcherMaybe, Maybe} from '../maybe'
+import {matcherMaybe, Maybe} from '../maybe'
 import {then} from './then'
 import {identity} from './identity'
 import {none} from './none'

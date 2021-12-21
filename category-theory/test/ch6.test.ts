@@ -1,7 +1,7 @@
 // eslint-disable-next-line max-classes-per-file
 import {expect} from 'chai'
-import {maybe, none, Some, just, toEither} from '../src/maybe'
-import {either, Either, left, right, toMaybe} from '../src/either'
+import {maybe, none, Some, just, toEither} from '../src/basics/maybe'
+import {either, Either, left, right, toMaybe} from '../src/basics/either'
 import {checkExhaustive} from '../src/check-exhaustiv'
 
 

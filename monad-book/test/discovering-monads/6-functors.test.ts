@@ -22,9 +22,7 @@ describe('Functors', () => {
 
         it('lifts to M with fmap', () => {
             const fmap: <A,B>(basicFn: (x: A) => B) => (x: Functor<A>) => Functor<B> =
-                <A, B>(basicFn: (a: A) => B) => (functor: Functor<A>) => {
-                    return functor.map<B>(basicFn)
-                }
+                <A, B>(basicFn: (a: A) => B) => (functor: Functor<A>) => functor.map<B>(basicFn)
 
             const canMapIntegers: (x: Functor<number>) => Functor<number> = fmap(basicFunction)
 
