@@ -1,8 +1,10 @@
 import {expect} from 'chai'
-import {fmap, id, just, Maybe, none} from '../src/maybe'
+import {fmap, id, IsValid, just, maybe, Maybe, none} from '../src/maybe'
 
 const plus2: (x: number) => number = x => x + 2
 const times3: (x: number) => number = x => x * 3
+
+
 
 describe('Functors  - https://bartoszmilewski.com/2015/01/20/functors/', () => {
     describe('1 - Can we turn the Maybe type constructor into a functor by defining', () => {
@@ -77,7 +79,81 @@ describe('Functors  - https://bartoszmilewski.com/2015/01/20/functors/', () => {
         })
     })
 
-    describe('2 - reader monad', () => {
-        it('should be tested')
+    describe('2 - reader functor', () => {
+        describe('Prove functor laws for the reader functor. Hint: it’s really simple', () => {
+            // fmap (g . f) = fmap g . fmap f
+            // fmap id = id
+
+            it('preserves identity', () => {
+                // fmap id ((->) a)
+                // = { definition of fmap)
+                // (->) a
+                // = { definition of Reader }
+            })
+
+            it('preserves composition', () => {
+                // fmap (g . f) ((->) a)
+                // = { definition of fmap }
+                // ((->) a (g . f))
+                // = { definition of composition }
+                // ((->) a (g(f( ? ))
+                // = { definition of fmap }
+                // fmap g ( (->) a f( ? ) )
+                // = { definition of fmap }
+                // fmap g (fmap f ( (->) a) )
+                // = { definition of composition)
+                // (fmap g . fmap f) ( (->) a)
+            })
+        })
+        describe('implement reader functor', () => {
+            // fmap :: (a -> b) -> (r -> a) -> (r -> b)
+            const readerFunctorToMaybe: <A>(x: A) => Maybe<A> = a => {
+                if (a) {
+                    return just(a)
+                }
+                return none()
+            }
+
+            interface Functor<A> {
+                fmap: <B>(f: (a: A) => B) => <C>(f2: (b: B) => C) => Functor<C>;
+            }
+
+            interface SomeFunctor<A> extends IsValid<true>, Functor<A> {
+                value: A;
+            }
+
+            interface NoneFunctor extends IsValid<false>, Functor<never> {
+            }
+
+            type MaybeFunctor<A> = SomeFunctor<A> | NoneFunctor
+            /* eslint-disable mocha/no-setup-in-describe */
+            class Some<A> implements SomeFunctor<A> {
+                public readonly isJust = true
+
+                public constructor(public readonly value: A) {
+                }
+
+                public fmap<B>(f: (a: A) => B): <C>(f2: (b: B) => C) => Functor<C> {
+                    return function <C>(g: (b: B) => C) {
+                        return new Some(g(f(this.value)))
+                    }.bind(this)
+                }
+            }
+            /* eslint-enable mocha/no-setup-in-describe */
+
+            it('preserves identity', () => {
+                // fmap id ((->) a)
+                // = { definition of fmap)
+                // (->) a
+                // = { definition of Reader }
+                expect(fmap(id)(readerFunctorToMaybe(4))).to.eql(readerFunctorToMaybe(id(4)))
+            })
+
+            it('preserves composition', () => {
+                const fmap1 = new Some(5).fmap(x => x + 5)(x => x**2)
+
+                expect(fmap1).to.eql(new Some(100))
+            })
+        })
     })
 })

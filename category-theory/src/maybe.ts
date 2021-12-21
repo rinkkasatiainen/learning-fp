@@ -1,9 +1,10 @@
 import {Either, Left, Right} from './either'
 
+//fmap :: (a -> b) -> (r -> a) -> (r -> b)
 export const fmap: <A, B>(f: (x: A) => B) => (m: Maybe<A>) => Maybe<B> =
     f => m => {
         if (m.isJust) {
-            return just(f(get(m)))
+            return just(f(m.value))
         }
         return none()
     }
@@ -22,14 +23,6 @@ export type Maybe<T> = None | Some<T>
 
 export const none: () => None = () => ({isJust: false})
 export const just: <A>(value: A) => Some<A> = value => ({isJust: true, value})
-
-export const get: <A>(value: Maybe<A>) => A | never =
-    value => {
-        if (value.isJust) {
-            return value.value
-        }
-        throw new Error('cannot get from Nothing')
-    }
 
 export const id: <A>(value: A) => A =
     value => value
