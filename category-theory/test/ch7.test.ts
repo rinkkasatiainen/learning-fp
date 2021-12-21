@@ -1,5 +1,5 @@
 import {expect} from 'chai'
-import {get, Maybe, none, just, id, fmap} from '../src/maybe'
+import {fmap, id, just, Maybe, none} from '../src/maybe'
 
 const plus2: (x: number) => number = x => x + 2
 const times3: (x: number) => number = x => x * 3
@@ -35,7 +35,7 @@ describe('Functors  - https://bartoszmilewski.com/2015/01/20/functors/', () => {
 
             it('composes one function ', () => {
                 const func = (x: Maybe<number>) => fmap(times3)(fmap(plus2)(x))
-                expect(func( maybeTypeConstrToNothing(4))).to.eql(none())
+                expect(func(maybeTypeConstrToNothing(4))).to.eql(none())
             })
         })
 
@@ -46,18 +46,34 @@ describe('Functors  - https://bartoszmilewski.com/2015/01/20/functors/', () => {
         })
     })
     describe('preserves composition', () => {
-        it('does magic', () => {
+        it('a function composition', () => {
+            const compositeOfJustValues = (maybeVal: Maybe<number>) => fmap(times3)(fmap(plus2)(maybeVal))
+            const compositeOfPlainValue = (x: number) => times3(plus2(x))
 
-            expect(fmap(times3)(fmap(plus2)(just(3)))).to.eql(just(15))
+            expect(compositeOfJustValues(just(3))).to.eql(just(15))
+            expect(compositeOfJustValues(just(3))).to.eql(just(compositeOfPlainValue(3)))
+        })
+
+        it('composition of array of functions', () => {
             // is same as:
-            const func: (x: number) => Maybe<number> = fmap(fmap(times3))
-            type F1<A> = (x: A) => A
-            const funcs: Array<F1<number>> = [times3, plus2]
-            const compose = (val: Maybe<number>) => funcs.reduce((prev, curr) => fmap(curr)(prev), val)
-            expect(compose(just(5))).to.eql(just(17))
+            type MorphismInsideCategory<A> = (x: A) => A
+            const funcs: Array<MorphismInsideCategory<number>> = [times3, plus2]
 
-            // other
-            expect(fmap(times3)(fmap(plus2)(just(3)))).to.eql(just(times3(plus2(3))))
+            const buildCompositionOfMaybeValues:
+                <T>(funcs1: Array<MorphismInsideCategory<T>>) => (val: Maybe<T>) => Maybe<T> =
+                morphisms => val => morphisms.reduce((prev, curr) => fmap(curr)(prev), val)
+            const buildCompositionOfPlainValue:
+                <T>(funcs: Array<MorphismInsideCategory<T>>) => (val: T) => T =
+                morphisms => val => morphisms.reduce((prev, curr) => curr(prev), val)
+
+            // composition of Maybe Values
+            expect(buildCompositionOfMaybeValues(funcs)(just(5))).to.eql(just(17))
+            expect(buildCompositionOfPlainValue(funcs)(5)).to.eql(17)
+
+            // can be lifted!
+            const composeFmapJust = buildCompositionOfMaybeValues(funcs)(just(63))
+            const justOfMap = just(buildCompositionOfPlainValue(funcs)(63))
+            expect(composeFmapJust).to.eql(justOfMap)
         })
     })
 

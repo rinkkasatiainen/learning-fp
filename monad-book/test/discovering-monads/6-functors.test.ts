@@ -1,19 +1,10 @@
 import { expect } from 'chai'
 
-interface RespondsToMap<A, B> {
+interface Functor<A> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-	map: (x: A) => RespondsToMap<B, any>;
+	map: <B>(f: (a: A) => B) => (a: Functor<A>) => Functor<B>;
 }
-interface Functor<A, B> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-	map: (f: (a: A) => B) => (a: Functor<A, B>) => Functor<B, unknown>;
-}
-type Fmap<A, B> = (functor: Functor<A, B>) => (a: A) => B
 interface HasMap<A,B> { map: (fn: (x: A) => B) => B}
-
-function hasMap<A, B>(m: {map?: (fn: (a: A) => B) => B } ): m is HasMap<A, B>{
-    return 'map' in m
-}
 
 describe('Functors', () => {
     const mapToString: (x: number) => string = num => `${ num }`
@@ -22,7 +13,7 @@ describe('Functors', () => {
         const basicFunction: (x: number) => number = x => x + 1
 
 
-        const plainFunctor: Functor<number, string> =  ({
+        const plainFunctor: Functor<number> =  ({
             map: fn => num => num.map(fn),
         })
         it('provides a function \'map\' - a \'functor map\'', () => {
