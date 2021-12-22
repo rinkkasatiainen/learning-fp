@@ -25,5 +25,5 @@ export const makeJust: <A>(val: A) => Just<A> = <A>(value: A) => ({
 
 export const makeNone: () => None = () => ({
     maybeType: 'none',
-    fmap: <A, B>(f: (a: A) => B) => makeNone(),
+    fmap: () => makeNone(),
 })
