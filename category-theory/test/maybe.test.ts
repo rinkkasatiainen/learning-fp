@@ -1,11 +1,7 @@
 import {expect} from 'chai'
 import {makeJust, makeNone} from '../src/maybe'
 import {identity} from '../src/identity'
-
-const verifyKeys: <T>(keys: Array<keyof T>) => (obj: { [key in keyof T]: unknown }) => unknown =
-    <T>(keys: Array<keyof T>) =>
-        (obj: { [key in keyof T]: unknown }) =>
-            keys.reduce((prev, key: keyof T) => ({...prev, [key]: obj[key]}), {})
+import {verifyKeys} from './verify-keys'
 
 const justString = makeJust('string')
 const justNumber = makeJust(42)
