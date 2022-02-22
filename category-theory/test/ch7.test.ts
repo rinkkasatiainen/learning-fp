@@ -132,7 +132,8 @@ describe('Functors  - https://bartoszmilewski.com/2015/01/20/functors/', () => {
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                        return new Some(g(f(this.value)))
+                        const gValue = g(f(this.value))
+                        return new Some(gValue)
                     }.bind(this)
                 }
             }
