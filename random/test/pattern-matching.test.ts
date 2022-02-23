@@ -47,13 +47,13 @@ describe('Pattern Matching', () => {
             const none: () => Nothing = () => ({_type: 'none'})
 
             const matcherMaybe:
-                <A, B>(pattern: Pattern<MaybeKeys, A, B>) => (maybe: PatternMatchingType<MaybeKeys>) => B =
-                <A, B>(p: Pattern<MaybeKeys, A, B>) => s => matcher<MaybeKeys, A, B>(p)(s)
+                <A, B>(pattern: Pattern<MaybeKeys, Maybe<A>, B>) => (maybe: Maybe<A>) => B =
+                <A, B>(p: Pattern<MaybeKeys, Maybe<A>, B>) => (s: Maybe<A>) => matcher<MaybeKeys, Maybe<A>, B>(p)(s)
 
             it('matches something', () => {
-                const res = matcherMaybe<Maybe<number>, Maybe<string>>({
-                    none: shape => shape,
-                    some: shape => {
+                const res = matcherMaybe<number, Maybe<string>>({
+                    none: (shape) => shape,
+                    some: (shape) => {
                         return just(shape._value.toString(10))
                     },
                 })(just(3))
@@ -65,7 +65,7 @@ describe('Pattern Matching', () => {
             })
 
             it('matches nothing', () => {
-                const f = matcherMaybe<Maybe<number>, Maybe<string>>({
+                const f = matcherMaybe<number, Maybe<string>>({
                     none: shape => shape,
                     some: shape => {
                         throw new Error(`should not have been called - ${shape._type}`)
